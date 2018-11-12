@@ -40,22 +40,22 @@ fn module_with_functions(py: Python, m: &PyModule) -> PyResult<()> {
 
     m.add("foo", "bar").unwrap();
 
-    m.add_function(wrap_function!(double)).unwrap();
+    m.add_wrapped(wrap_function!(double)).unwrap();
     m.add("also_double", wrap_function!(double)(py)).unwrap();
 
     Ok(())
 }
 
 #[test]
-#[cfg(Py_3)]
 fn test_module_with_functions() {
     let gil = Python::acquire_gil();
     let py = gil.python();
 
     let d = PyDict::new(py);
-    d.set_item("module_with_functions", unsafe {
-        PyObject::from_owned_ptr(py, PyInit_module_with_functions())
-    })
+    d.set_item(
+        "module_with_functions",
+        wrap_module!(module_with_functions)(py),
+    )
     .unwrap();
 
     let run = |code| py.run(code, None, Some(d)).unwrap();
@@ -131,16 +131,56 @@ fn r#move() -> usize {
 
 #[pymodinit]
 fn raw_ident_module(_py: Python, module: &PyModule) -> PyResult<()> {
-    module.add_function(wrap_function!(r#move))
+    module.add_wrapped(wrap_function!(r#move))
 }
 
 #[test]
-#[cfg(Py_3)]
 fn test_raw_idents() {
     let gil = Python::acquire_gil();
     let py = gil.python();
 
-    let module = unsafe { PyObject::from_owned_ptr(py, PyInit_raw_ident_module()) };
+    let module = wrap_module!(raw_ident_module)(py);
 
     py_assert!(py, module, "module.move() == 42");
+}
+
+#[pyfunction]
+fn subfunction() -> String {
+    "Subfunction".to_string()
+}
+
+#[pymodinit]
+fn submodule(_py: Python, module: &PyModule) -> PyResult<()> {
+    module.add_wrapped(wrap_function!(subfunction))?;
+    Ok(())
+}
+
+#[pyfunction]
+fn superfunction() -> String {
+    "Superfunction".to_string()
+}
+
+#[pymodinit]
+fn supermodule(_py: Python, module: &PyModule) -> PyResult<()> {
+    module.add_wrapped(wrap_function!(superfunction))?;
+    module.add_wrapped(wrap_module!(submodule))?;
+    Ok(())
+}
+
+#[test]
+fn test_module_nesting() {
+    let gil = GILGuard::acquire();
+    let py = gil.python();
+    let supermodule = wrap_module!(supermodule)(py);
+
+    py_assert!(
+        py,
+        supermodule,
+        "supermodule.superfunction() == 'Superfunction'"
+    );
+    py_assert!(
+        py,
+        supermodule,
+        "supermodule.submodule.subfunction() == 'Subfunction'"
+    );
 }
