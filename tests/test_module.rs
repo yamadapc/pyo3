@@ -23,7 +23,7 @@ fn double(x: usize) -> usize {
 }
 
 /// This module is implemented in Rust.
-#[pymodinit]
+#[pymodule]
 fn module_with_functions(py: Python, m: &PyModule) -> PyResult<()> {
     #[pyfn(m, "sum_as_string")]
     fn sum_as_string_py(_py: Python, a: i64, b: i64) -> PyResult<String> {
@@ -71,7 +71,7 @@ fn test_module_with_functions() {
     run("assert module_with_functions.also_double.__doc__ == 'Doubles the given value'");
 }
 
-#[pymodinit(other_name)]
+#[pymodule(other_name)]
 fn some_name(_: Python, _: &PyModule) -> PyResult<()> {
     Ok(())
 }
@@ -129,7 +129,7 @@ fn r#move() -> usize {
     42
 }
 
-#[pymodinit]
+#[pymodule]
 fn raw_ident_module(_py: Python, module: &PyModule) -> PyResult<()> {
     module.add_wrapped(wrap_function!(r#move))
 }
@@ -149,7 +149,7 @@ fn subfunction() -> String {
     "Subfunction".to_string()
 }
 
-#[pymodinit]
+#[pymodule]
 fn submodule(_py: Python, module: &PyModule) -> PyResult<()> {
     module.add_wrapped(wrap_function!(subfunction))?;
     Ok(())
@@ -160,7 +160,7 @@ fn superfunction() -> String {
     "Superfunction".to_string()
 }
 
-#[pymodinit]
+#[pymodule]
 fn supermodule(_py: Python, module: &PyModule) -> PyResult<()> {
     module.add_wrapped(wrap_function!(superfunction))?;
     module.add_wrapped(wrap_module!(submodule))?;
