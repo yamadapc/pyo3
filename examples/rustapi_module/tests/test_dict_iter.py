@@ -4,7 +4,7 @@ import pytest
 
 @pytest.mark.parametrize(
     "size",
-    [64, 128, 256],
+    [64, 128, 256, 1000000],
 )
 def test_size(size):
     d = {}
