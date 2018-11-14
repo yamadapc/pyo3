@@ -185,7 +185,7 @@ mod object;
 mod objectprotocol;
 pub mod prelude;
 pub mod python;
-mod pythonrun;
+pub mod pythonrun;
 pub mod typeob;
 pub mod types;
 

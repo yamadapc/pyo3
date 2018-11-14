@@ -107,12 +107,12 @@ impl Drop for GILGuard {
 }
 
 /// Release pool
-struct ReleasePool {
-    owned: Vec<*mut ffi::PyObject>,
-    borrowed: Vec<*mut ffi::PyObject>,
-    pointers: *mut Vec<*mut ffi::PyObject>,
-    obj: Vec<Box<any::Any>>,
-    p: spin::Mutex<*mut Vec<*mut ffi::PyObject>>,
+pub struct ReleasePool {
+    pub owned: Vec<*mut ffi::PyObject>,
+    pub borrowed: Vec<*mut ffi::PyObject>,
+    pub pointers: *mut Vec<*mut ffi::PyObject>,
+    pub obj: Vec<Box<any::Any>>,
+    pub p: spin::Mutex<*mut Vec<*mut ffi::PyObject>>,
 }
 
 impl ReleasePool {
@@ -170,7 +170,7 @@ impl ReleasePool {
     }
 }
 
-static mut POOL: *mut ReleasePool = ::std::ptr::null_mut();
+pub static mut POOL: *mut ReleasePool = ::std::ptr::null_mut();
 
 #[doc(hidden)]
 pub struct GILPool {

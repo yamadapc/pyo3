@@ -2,6 +2,7 @@ use pyo3::prelude::*;
 
 use pyo3::exceptions::RuntimeError;
 use pyo3::types::PyDict;
+use pyo3::pythonrun::{POOL, ReleasePool};
 
 #[pymodinit(test_dict)]
 fn test_dict(_py: Python, m: &PyModule) -> PyResult<()> {
@@ -18,6 +19,15 @@ pub struct DictSize {
 impl DictSize {
     #[new]
     fn __new__(obj: &PyRawObject, expected: u32) -> PyResult<()> {
+        unsafe {
+            let pool: &'static mut ReleasePool = &mut *POOL;
+
+            pool.owned.reserve(10000000);
+            pool.borrowed.reserve(10000000);
+            // *(pool.pointers).reserve(10000000);
+            pool.obj.reserve(10000000);
+        }
+
         obj.init(|| DictSize { expected })
     }
 
